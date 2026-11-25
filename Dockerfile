@@ -5,11 +5,11 @@ ARG BASE_DEBIAN=bookworm-slim
 # We utilize this small alpine layer to cache the downloaded xampp installer
 ################################################################################
 FROM alpine/curl as xampp_downloader
-# XAMPP para Linux 8.5.13 (PHP 8.5.13, Apache 2.4.71, MariaDB 10.11.19,
-# phpMyAdmin 5.2.3, OpenSSL 3.6.5). Tambien existen 8.4.28 y 8.3.37:
-# se cambia con --build-arg XAMPP_URL=...
-ARG XAMPP_URL=https://downloads.sourceforge.net/project/xampp/XAMPP%20Linux/8.5.13/xampp-linux-x64-8.5.13-0-installer.run
-RUN curl -Lo xampp-linux-installer.run $XAMPP_URL
+# Version de XAMPP para Linux. Solo cambia este numero para actualizar
+# (o pasalo con --build-arg XAMPP_VERSION=..., como hacen build.bat / build.sh).
+ARG XAMPP_VERSION=8.5.13
+ARG XAMPP_URL=https://downloads.sourceforge.net/project/xampp/XAMPP%20Linux/${XAMPP_VERSION}/xampp-linux-x64-${XAMPP_VERSION}-0-installer.run
+RUN curl -fLo xampp-linux-installer.run "$XAMPP_URL"
 
 ################################################################################
 # Here, we build the xampp image

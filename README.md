@@ -8,7 +8,7 @@ Imagen Docker basada en [tomsik68/docker-xampp](https://github.com/tomsik68/dock
 
 ## Descargar
 
-Ve a **Releases** y descarga `xampp.tar` (linux/amd64, formato `docker save`).
+Ve a **Releases** y descarga `xampp.tar` (si GitHub Actions está activo en la cuenta) (linux/amd64, formato `docker save`).
 
 ## Usar en RouterOS
 
@@ -17,15 +17,25 @@ Ve a **Releases** y descarga `xampp.tar` (linux/amd64, formato `docker save`).
 /container/start xampp
 ```
 
-## Construir otra versión
+## Compilar en tu PC (recomendado)
+
+- **Windows:** doble clic en `build.bat` (abre Docker Desktop si está cerrado y espera a que arranque).
+- **Linux:** `./build.sh`
+
+El resultado es `xampp-<versión>.tar` en la misma carpeta.
+
+### Actualizar a una versión nueva de XAMPP
+
+1. Mira el número nuevo en https://www.apachefriends.org (por ejemplo `8.5.14`).
+2. Cambia **una sola línea** en `build.bat` (`set "XAMPP_VERSION=..."`) o en `build.sh` (`XAMPP_VERSION="..."`).
+3. Compila otra vez.
+
+También puedes no editar nada y pasar la versión: `build.bat 8.4.28` o `./build.sh 8.4.28`.
+
+## Construir con GitHub Actions
 
 En **Actions → Build xampp.tar → Run workflow** puedes elegir otra versión (por ejemplo `8.4.28` o `8.3.37`). Cada versión se publica como un release propio (`v8.4.28`, etc.).
 
-Para construirla en tu PC:
-
-```bash
-docker buildx build --no-cache --platform linux/amd64 -t xampp:8.5.13 --output type=docker,dest=xampp.tar .
-```
 
 ## Accesos por defecto
 

@@ -25,9 +25,8 @@ jobs:
 
       - name: Construir imagen (linux/amd64)
         run: |
-          URL="https://downloads.sourceforge.net/project/xampp/XAMPP%20Linux/${XAMPP_VERSION}/xampp-linux-x64-${XAMPP_VERSION}-0-installer.run"
           docker buildx build --no-cache --platform linux/amd64 \
-            --build-arg XAMPP_URL="$URL" \
+            --build-arg XAMPP_VERSION="${XAMPP_VERSION}" \
             -t "xampp:${XAMPP_VERSION}" \
             --load .
 
