@@ -1,0 +1,67 @@
+name: Build xampp.tar
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      xampp_version:
+        description: "Version de XAMPP para Linux (ej. 8.5.13, 8.4.28, 8.3.37)"
+        required: true
+        default: "8.5.13"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      XAMPP_VERSION: ${{ github.event.inputs.xampp_version || '8.5.13' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Construir imagen (linux/amd64)
+        run: |
+          URL="https://downloads.sourceforge.net/project/xampp/XAMPP%20Linux/${XAMPP_VERSION}/xampp-linux-x64-${XAMPP_VERSION}-0-installer.run"
+          docker buildx build --no-cache --platform linux/amd64 \
+            --build-arg XAMPP_URL="$URL" \
+            -t "xampp:${XAMPP_VERSION}" \
+            --load .
+
+      - name: Probar que Apache, MySQL y SSH arrancan
+        run: |
+          docker run -d --name xampp-test -p 8080:80 "xampp:${XAMPP_VERSION}"
+          for i in $(seq 1 60); do
+            curl -fsS -o /dev/null http://localhost:8080/ && break
+            sleep 2
+          done
+          sleep 5
+          docker exec xampp-test /opt/lampp/lampp status
+          docker exec xampp-test /opt/lampp/bin/php -v
+          curl -fsS -o /dev/null -w "Web: %{http_code}\n" http://localhost:8080/
+          curl -fsS -o /dev/null -w "phpMyAdmin: %{http_code}\n" http://localhost:8080/phpmyadmin/
+          docker exec xampp-test /opt/lampp/bin/mysql -uroot -e "SELECT VERSION();"
+          docker exec xampp-test pgrep -x sshd
+          docker rm -f xampp-test
+
+      - name: Exportar xampp.tar (formato docker save, sin comprimir)
+        run: |
+          docker save "xampp:${XAMPP_VERSION}" -o xampp.tar
+          sha256sum xampp.tar | tee xampp.tar.sha256
+          ls -lh xampp.tar
+
+      - name: Publicar en Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.XAMPP_VERSION }}
+          name: XAMPP ${{ env.XAMPP_VERSION }} para MikroTik CHR (amd64)
+          body: |
+            Imagen basada en tomsik68/xampp, con XAMPP para Linux ${{ env.XAMPP_VERSION }} y sin el bloqueo de fecha.
+            Plataforma: linux/amd64. Archivo en formato `docker save`, listo para `/container/add file=xampp.tar`.
+          files: |
+            xampp.tar
+            xampp.tar.sha256
+          make_latest: true
